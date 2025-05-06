@@ -21,6 +21,7 @@
 #include <LiquidCrystal_I2C.h>
 #include <Button.h>
 #include <Buzzer.h>
+#include <Keypad.h>
 
 #if (defined(__AVR__) || defined(ESP8266)) && !defined(__AVR_ATmega2560__)
 // For UNO and others without hardware serial, we must use software serial...
@@ -43,6 +44,23 @@ Adafruit_Fingerprint finger = Adafruit_Fingerprint(&mySerial);
 const int rs = 12, en = 11, d4 = 5, d5 = 4, d6 = 3, d7 = 2;
 uint8_t id;
 int userChoice = 0;
+
+const byte ROWS = 4; 
+const byte COLS = 4; 
+
+String inputCode = "";
+
+char hexaKeys[ROWS][COLS] = {
+  {'1', '2', '3', 'A'},
+  {'4', '5', '6', 'B'},
+  {'7', '8', '9', 'C'},
+  {'*', '0', '#', 'D'}
+};
+
+byte rowPins[ROWS] = {9, 8, 7, 6}; 
+byte colPins[COLS] = {4, 5, 3, 2}; 
+
+Keypad customKeypad = Keypad(makeKeymap(hexaKeys), rowPins, colPins, ROWS, COLS); 
 
 LiquidCrystal_I2C lcd(0x27,16,2);
 void setup()
@@ -197,6 +215,25 @@ void loop() // run over and over again
     lcd.print("Waiting for");
     lcd.setCursor(0, 1);
     lcd.print("valid finger");
+  }
+  char customKey = customKeypad.getKey();
+  if (customKey){
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    inputCode += customKey;
+    lcd.print(inputCode);
+
+    while (inputCode.length() < 6) {
+    char nextKey = customKeypad.getKey();
+    if (nextKey) {
+      inputCode += nextKey;
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print(inputCode);
+    }
+    }
+    checkCode(inputCode);
+    inputCode = "";
   }
   /*if (userChoice == 2) {
     Serial.println("Ready to enroll a fingerprint!");
@@ -435,4 +472,32 @@ int getFingerprintIDez() {
   Serial.print("Found ID #"); Serial.print(finger.fingerID);
   Serial.print(" with confidence of "); Serial.println(finger.confidence);
   return finger.fingerID;
+}
+
+bool checkCode(const String& code) {
+  if (code == "123456") {
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Code OK");
+    buzzer.begin(10);
+    buzzer.sound(NOTE_C5, 100);
+    buzzer.sound(NOTE_E5, 100);
+    buzzer.sound(NOTE_G5, 200);
+    buzzer.sound(0, 100);       
+    buzzer.sound(NOTE_G5, 300);     
+    buzzer.end(1000);
+    return true;
+  } else {
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Wrong Code!");
+    buzzer.begin(10);
+    buzzer.sound(NOTE_G4, 200);
+    buzzer.sound(NOTE_E4, 200);
+    buzzer.sound(NOTE_C4, 300);
+    buzzer.sound(0, 100);           
+    buzzer.end(1000);
+    delay(2000);
+    return false;
+  }
 }
