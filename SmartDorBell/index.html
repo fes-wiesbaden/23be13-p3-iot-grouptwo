@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>MQTT</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.2/mqttws31.min.js" type="text/javascript"></script>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+</head>
+</head>
+<body>
+<h2>Türsteuerung</h2>
+<button onclick="sendUnlock()">Tür öffnen</button>
+
+<script>
+    const client = mqtt.connect("ws://localhost:9001");
+
+    client.on("connect", () => {
+        console.log("Verbunden mit MQTT-Broker");
+    });
+
+    function sendUnlock() {
+        client.publish("door/open", "unlock");
+        console.log("unlock gesendet");
+    }
+</script>
+</body>
+</html>

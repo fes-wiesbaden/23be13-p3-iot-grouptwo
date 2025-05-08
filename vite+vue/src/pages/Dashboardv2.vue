@@ -1,0 +1,287 @@
+<template>
+  <div class="dashboard">
+    <!-- Camera Card -->
+    <div class="card card-camera">
+      <div class="card-header">
+        <h2>Camera</h2>
+        <div class="camera-buttons">
+          <button class="btn active">Kitchen</button>
+          <button class="btn">Living</button>
+          <button class="btn">Attic</button>
+        </div>
+      </div>
+      <div class="camera-image">
+        <img src="../assets/living.jpg" alt="Camera View" />
+        <div class="timestamp">17.05.2021 4:34PM</div>
+        <div class="recording">● Recording</div>
+      </div>
+    </div>
+
+    <!-- Sensor Cards -->
+    <div class="card">
+      <h3>Living Room Temp</h3>
+      <p class="big-value text-green">21°C</p>
+      <p class="subtext">Current Temperature</p>
+    </div>
+
+    <div class="card">
+      <h3>Humidity</h3>
+      <p class="big-value text-blue">44%</p>
+      <p class="subtext">Outdoor</p>
+    </div>
+
+    <div class="card">
+      <h3>Internet</h3>
+      <p class="big-value text-indigo">417 GB</p>
+      <p class="subtext">All Devices</p>
+    </div>
+
+    <div class="card">
+      <h3>Water Usage</h3>
+      <p class="big-value text-cyan">87 m³</p>
+      <p class="subtext">This Month</p>
+    </div>
+
+    <!-- Weather -->
+    <div class="card card-weather">
+      <h3>Weather Today</h3>
+      <p class="big-value">San Francisco - 29°C</p>
+      <p class="subtext right">Cloudy</p>
+    </div>
+
+    <!-- Energy by Room -->
+    <div class="card card-wide">
+      <h3>Consumption by Room</h3>
+      <div class="energy">
+        <div class="watts">
+          <p class="big-value text-blue">471.3</p>
+          <p class="subtext">WATTS</p>
+        </div>
+        <ul class="room-list">
+          <li><span class="dot dot-pink"></span>Living Room - 15%</li>
+          <li><span class="dot dot-blue"></span>Kitchen - 20%</li>
+          <li><span class="dot dot-purple"></span>Attic - 13%</li>
+          <li><span class="dot dot-green"></span>Garage - 32%</li>
+          <li><span class="dot dot-yellow"></span>Basement - 20%</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Chart -->
+    <div class="card card-wide">
+      <h3>Daily Consumption</h3>
+      <div class="chart">
+        <div class="bar" style="height: 50px"></div>
+        <div class="bar" style="height: 200px"></div>
+        <div class="bar" style="height: 300px"></div>
+        <div class="bar" style="height: 250px"></div>
+        <div class="bar" style="height: 400px"></div>
+        <div class="bar" style="height: 100px"></div>
+        <div class="bar" style="height: 80px"></div>
+      </div>
+      <div class="days">
+        <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+// Placeholder for logic or props
+</script>
+
+
+<style scoped>
+.dashboard {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 24px;
+  padding: 24px;
+  background-color: #121212;
+  color: #f1f1f1;
+  font-family: 'Segoe UI', sans-serif;
+  min-height: 100vh;
+}
+
+/* Card */
+.card {
+  background-color: #1e1e1e;
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  text-align: center;
+  transition: transform 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+}
+
+.card-wide {
+  grid-column: span 2;
+}
+
+.card h3 {
+  margin-bottom: 12px;
+  font-size: 1.1rem;
+}
+
+/* Values */
+.big-value {
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.subtext {
+  color: #aaa;
+  font-size: 0.85rem;
+}
+
+.subtext.right {
+  text-align: right;
+}
+
+/* Colors */
+.text-green { color: #4ade80; }
+.text-blue { color: #3b82f6; }
+.text-indigo { color: #6366f1; }
+.text-cyan { color: #06b6d4; }
+
+/* Camera */
+.card-camera {
+  grid-column: span 2;
+  padding: 0;
+  overflow: hidden;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #222;
+  padding: 12px 20px;
+  border-bottom: 1px solid #444;
+}
+
+.card-header h2 {
+  margin: 0;
+}
+
+.btn {
+  background: #333;
+  color: #ccc;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 6px 14px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.btn:hover {
+  background: #444;
+  color: white;
+}
+
+.btn.active {
+  background: #2563eb;
+  color: white;
+}
+
+.camera-image {
+  position: relative;
+}
+
+.camera-image img {
+  width: 100%;
+  height: 300px;
+  object-fit: cover;
+}
+
+.timestamp, .recording {
+  position: absolute;
+  top: 10px;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+}
+
+.timestamp { left: 10px; }
+
+.recording {
+  right: 10px;
+  color: #f87171;
+  font-weight: bold;
+}
+
+/* Weather card */
+.card-weather {
+  background: linear-gradient(to right, #22c55e, #16a34a);
+  color: white;
+}
+
+/* Energy by room */
+.energy {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.watts {
+  flex: 1;
+}
+
+.room-list {
+  flex: 2;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 0.85rem;
+  color: #ccc;
+}
+
+.room-list li {
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+
+.dot-pink { background: #ec4899; }
+.dot-blue { background: #3b82f6; }
+.dot-purple { background: #a855f7; }
+.dot-green { background: #22c55e; }
+.dot-yellow { background: #eab308; }
+
+/* Chart */
+.chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  height: 200px;
+  margin-top: 20px;
+}
+
+.bar {
+  width: 20px;
+  background: #3b82f6;
+  border-radius: 6px;
+  transition: height 0.3s;
+}
+
+.days {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: #999;
+  margin-top: 10px;
+}
+</style>
