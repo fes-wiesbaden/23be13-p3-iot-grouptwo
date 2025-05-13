@@ -177,6 +177,24 @@ mqttClient.on('message', (topic, message) => {
 
     return;
   }
+  // Handle LCD
+  if (topic === "device/lcd/lcd") {
+    const lcdMsg = {
+      type: 'status',
+      device: "lcd",
+      value: message.toString()
+    };
+
+    console.log('💧 Bell Update → WS:', lcdMsg);
+
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify(lcdMsg));
+      }
+    });
+
+    return;
+  }
 
   // Handle device status updates
   if (parts.length === 3 && parts[0] === 'device') {
