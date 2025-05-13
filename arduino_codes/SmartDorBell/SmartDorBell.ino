@@ -21,7 +21,6 @@
 #include <LiquidCrystal_I2C.h>
 #include <Button.h>
 #include <Buzzer.h>
-#include <Keypad.h>
 
 #if (defined(__AVR__) || defined(ESP8266)) && !defined(__AVR_ATmega2560__)
 // For UNO and others without hardware serial, we must use software serial...
@@ -45,22 +44,6 @@ const int rs = 12, en = 11, d4 = 5, d5 = 4, d6 = 3, d7 = 2;
 uint8_t id;
 int userChoice = 0;
 
-const byte ROWS = 4; 
-const byte COLS = 4; 
-
-String inputCode = "";
-
-char hexaKeys[ROWS][COLS] = {
-  {'1', '2', '3', 'A'},
-  {'4', '5', '6', 'B'},
-  {'7', '8', '9', 'C'},
-  {'*', '0', '#', 'D'}
-};
-
-byte rowPins[ROWS] = {9, 8, 7, 6}; 
-byte colPins[COLS] = {4, 5, 3, 2}; 
-
-Keypad customKeypad = Keypad(makeKeymap(hexaKeys), rowPins, colPins, ROWS, COLS); 
 
 LiquidCrystal_I2C lcd(0x27,16,2);
 void setup()
