@@ -33,8 +33,11 @@ const char* mqttPassword = "admin";
 
 // Topics
 const char* deviceId = "pinpad";
+const char* deviceId2 = "buzzer";
 const char* controlTopic = "device/pinpad/pinpad";
 const char* statusTopic = "device/pinpad/pinpad";
+const char* controlTopic2 = "device/buzzer/buzzer";
+const char* statusTopic2 = "device/buzzer/buzzer";
 const char* statusTopicServo = "device/servo/servo";
 
 EthernetClient ethClient;
@@ -124,6 +127,7 @@ uint8_t readnumber(void) {
 
 bool checkCode(const String& code) {
   if (code == "123456") {
+    client.publish(controlTopic2, "BuzzerON"); 
     client.publish(statusTopicServo, "ON"); 
     client.publish(statusTopic, "OPEN");
     delay(10000);
@@ -132,7 +136,7 @@ bool checkCode(const String& code) {
     return true;
   } else {
     delay(2000);
-    Serial.print("false");
+    client.publish(controlTopic2, "BuzzerOFF"); 
     return false;
   }
 }
