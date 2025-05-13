@@ -3,6 +3,7 @@
 #include <Servo.h>
 #include <SPI.h>
 #include <MFRC522.h>
+#include <Buzzer.h>
 
 #define RST_PIN         D0           // Configurable, see typical pin layout above
 #define SS_PIN          D8          // Configurable, see typical pin layoutabove
@@ -10,6 +11,9 @@
 MFRC522 mfrc522(SS_PIN, RST_PIN);   // Create MFRC522 instance.
 
 MFRC522::MIFARE_Key key;
+
+// Buzzer
+Buzzer buzzer(D2);
 
 // Servo
 Servo myservo; 
@@ -33,8 +37,11 @@ const char* mqttPassword = "admin";
 
 // Topics
 const char* deviceId = "servo";
+const char* deviceId2 = "buzzer";
 const char* controlTopic = "device/servo/servo";
 const char* statusTopic = "device/status/servo";
+const char* controlTopic2 = "device/buzzer/buzzer";
+const char* statusTopic2 = "device/buzzer/buzzer";
 
 WiFiClient wifiClient;
 PubSubClient client(wifiClient);
@@ -60,6 +67,15 @@ void callback(char* topic, byte* payload, unsigned int length) {
       client.publish(statusTopic, "OFF");
     }
   } 
+  if (String(topic) == controlTopic2) {
+    if (message == "BuzzerON") {
+      buzzerAllowed();
+      client.publish(statusTopic, "BuzzerON");
+    } else if (message == "BuzzerOFF") {
+      buzzerDenied();
+      client.publish(statusTopic, "BuzzerOFF");
+    }
+  } 
 }
 
 void reconnect() {
@@ -69,7 +85,9 @@ void reconnect() {
     if (client.connect(clientId.c_str(), mqttUser, mqttPassword)) {
       Serial.println("connected!");
       client.subscribe(controlTopic);
+      client.subscribe(controlTopic2);
       client.publish(statusTopic, "ONLINE");
+      client.publish(statusTopic2, "ONLINE");
     } else {
       Serial.print("Failed. State=");
       Serial.println(client.state());
@@ -158,14 +176,15 @@ void loop() {
     mfrc522.uid.uidByte[3] == 0x39) {
     Serial.println("✅ Zugang gewährt");
 
-    
   if (!ersteFunktionAusgeführt) {
+    client.publish(controlTopic2, "BuzzerON"); 
     client.publish(controlTopic, "ON"); 
     startZeit = millis();  // Startzeit merken
     ersteFunktionAusgeführt = true;
     zweiteFunktionAusgeführt = false;
   }
   } else {
+    client.publish(controlTopic2, "BuzzerOFF"); 
     Serial.println("❌ Zugang verweigert");
     return; // Rest des Codes wird nicht ausgeführt
   }
@@ -296,4 +315,24 @@ void dump_byte_array(byte *buffer, byte bufferSize) {
     Serial.print(buffer[i] < 0x10 ? " 0" : " ");
     Serial.print(buffer[i], HEX);
   }
+}
+
+void buzzerAllowed() {
+  buzzer.begin(10);
+  buzzer.sound(NOTE_C5, 100);
+  buzzer.sound(NOTE_E5, 100);
+  buzzer.sound(NOTE_G5, 200);
+  buzzer.sound(0, 100);       
+  buzzer.sound(NOTE_G5, 300);     
+  buzzer.end(1000);
+}
+
+void buzzerDenied() {
+  buzzer.begin(10);
+  buzzer.sound(NOTE_G4, 200);
+  buzzer.sound(NOTE_E4, 200);
+  buzzer.sound(NOTE_C4, 300);
+  buzzer.sound(0, 100);           
+  buzzer.end(1000);
+  delay(2000);
 }
