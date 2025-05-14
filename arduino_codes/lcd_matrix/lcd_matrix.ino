@@ -2,6 +2,44 @@
 #include <LiquidCrystal_I2C.h>
 #include <WiFi.h>
 #include <PubSubClient.h>
+#include <MD_MAX72xx.h>
+#include <SPI.h>
+
+// Matrix Screen
+
+// NOTE: These pin numbers will probably not work with your hardware and may
+// need to be adapted
+#define HARDWARE_TYPE MD_MAX72XX::PAROLA_HW
+#define MAX_DEVICES 2
+
+#define CLK_PIN   18  // or SCK
+#define DATA_PIN  23  // or MOSI
+#define CS_PIN    5  // or SS
+
+// SPI hardware interface
+MD_MAX72XX M = MD_MAX72XX(HARDWARE_TYPE, CS_PIN, MAX_DEVICES);
+
+byte openLock[8] = {
+  B00111000,
+  B01000100,
+  B10000000,
+  B10000000,
+  B11111110,
+  B10000010,
+  B10000010,
+  B11111110
+};
+
+byte closeLock[8] = {
+  B00111000,
+  B01000100,
+  B10000010,
+  B10000010,
+  B11111110,
+  B10000010,
+  B10000010,
+  B11111110
+};
  
 //LCD Screen
 LiquidCrystal_I2C lcd(0x27,16,2); // set the LCD address to 0x3F for a 16 chars and 2 line display
@@ -14,7 +52,7 @@ const char* ssid = "FES-SuS";
 const char* password = "SuS-WLAN!Key24";
 
 // MQTT configuration
-const char* mqttHost = "10.93.138.100";
+const char* mqttHost = "10.93.137.48";
 const int mqttPort = 1883;
 const char* mqttUser = "admin";
 const char* mqttPassword = "admin";
@@ -43,13 +81,17 @@ void callback(char* topic, byte* payload, unsigned int length) {
     if (message == "accessAllowed") {
       Serial.print("access Allowed");
       accessAllowedTxt();
+      drawOpenClock();
       client.publish(statusTopic, "allowed");
-    }if (message == "accessDenied") {
+    }
+    if (message == "accessDenied") {
       accessDeniedTxt();
+      drawCloseClock();
       client.publish(statusTopic, "denied");
     }
-    else if (message == "accessPending") {
+    if (message == "accessPending") {
       accessPendingTxt();
+      drawCloseClock();
     }
   } 
 }
@@ -73,6 +115,8 @@ void reconnect() {
 void setup()
 {
   Serial.begin(115200);
+  M.begin();
+  M.clear();
   lcd.init(); // initialize the lcd
   // Print a message to the LCD.
   lcd.backlight();
@@ -130,4 +174,18 @@ void accessPendingTxt() {
   lcd.print("Smart Lock");
   lcd.setCursor(0,1);
   lcd.print("System");
+}
+
+void drawCloseClock() {
+  drawImage(closeLock);
+}
+
+void drawOpenClock() {
+  drawImage(openLock);
+}
+
+void drawImage(byte* image) {
+  for (uint8_t row = 0; row < 8; row++) {
+    M.setRow(row, image[row]);
+  }
 }
