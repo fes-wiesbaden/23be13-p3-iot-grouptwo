@@ -17,18 +17,42 @@ const options = {
   clientId: 'nodejs-controller-' + Math.random().toString(16).substr(2, 8)
 };
 
+// Define supported device types
+const DEVICE_TYPES = ['led', 'lcd', 'servo', 'fan', 'buzzer', 'lamp'];
+
 // Connect to MQTT Broker
 const mqttClient = mqtt.connect(brokerUrl, options);
 
 mqttClient.on('connect', () => {
   console.log('🔗 Connected to MQTT broker');
 
-  // Subscribe to all device statuses
-  mqttClient.subscribe('device/status/#', (err) => {
-    if (!err) console.log('📡 Subscribed to device/status/#');
+  // Subscribe to device status topics
+  DEVICE_TYPES.forEach(type => {
+    mqttClient.subscribe(`device/${type}/#`, (err) => {
+      if (!err) console.log(`📡 Subscribed to device/${type}/#`);
+    });
   });
+
+  // Subscribe to temperature sensor
   mqttClient.subscribe('SF/TEMP', (err) => {
-    if (!err) console.log("📡 Subscribed to SF/TEMP")
+    if (!err) console.log("📡 Subscribed to SF/TEMP");
+  });
+
+  // Subscribe to humidity sensor
+  mqttClient.subscribe('SF/HUMIDITY', (err) => {
+    if (!err) console.log('📡 Subscribed to SF/HUMIDITY');
+  });
+
+  mqttClient.subscribe('device/pinpad/pinpad', (err) => {
+    if (!err)  console.log('📡 Subscribed to device/pinpad/pinpad')
+  })
+
+  mqttClient.subscribe('device/buzzer/buzzer', (err) => {
+    if (!err)  console.log('📡 Subscribed to device/buzzer/buzzer')
+  })
+
+  mqttClient.subscribe('device/bell/bell', (err) => {
+    if (!err)  console.log('📡 Subscribed to device/buzzer/buzzer')
   })
 });
 
@@ -46,34 +70,24 @@ wss.on('connection', (ws) => {
   console.log('🔌 WebSocket client connected');
   ws.send(JSON.stringify({ type: 'info', message: '✅ Connected to WebSocket server' }));
 
-  // Handle incoming WebSocket messages
   ws.on('message', (data) => {
     try {
       const msg = JSON.parse(data.toString());
-      console.log("Websocketmsg: ", msg);
+      const { deviceId, command, deviceType } = msg;
 
-      if (!msg.deviceId || !msg.command) {
-        console.warn('⚠️ Invalid WS message format:', msg);
+      if (!deviceId || !command || !deviceType || !DEVICE_TYPES.includes(deviceType)) {
+        console.warn('⚠️ Invalid WS message format or unknown device type:', msg);
         return;
       }
 
-      const topic = `device/led/${msg.deviceId}`;
-      const topic2 = `device/lcd/${msg.deviceId}`;
-      
-      const payload = msg.command.toUpperCase(); // "ON" or "OFF"
+      const topic = `device/${deviceType}/${deviceId}`;
+      const payload = command.toUpperCase();
 
       mqttClient.publish(topic, payload, {}, (err) => {
         if (err) {
           console.error('❌ MQTT publish error:', err);
         } else {
           console.log(`📤 Published to MQTT: ${topic} → ${payload}`);
-        }
-      });
-      mqttClient.publish(topic2, payload, {}, (err) => {
-        if (err) {
-          console.error('❌ MQTT publish error:', err);
-        } else {
-          console.log(`📤 Published to MQTT: ${topic2} → ${payload}`);
         }
       });
     } catch (e) {
@@ -85,45 +99,131 @@ wss.on('connection', (ws) => {
 // Relay MQTT messages back to WebSocket clients
 mqttClient.on('message', (topic, message) => {
   const parts = topic.split('/');
-  if (parts.length < 3) return;
 
-  const deviceId = parts[2];
-  const payload = message.toString();
+  console.log(parts)
 
-  const wsMessage = {
-    type: 'status',
-    deviceId,
-    status: payload === 'ON'
-  };
-
-  if (topic === "SF/TEMP"){
-    const msg = message.toString();
-
-    const tempMessage = {
+  // Handle Temperature update
+  if (topic === "SF/TEMP") {
+    const tempMsg = {
       type: 'status',
       device: "temp",
-      value: msg
-    }
+      value: message.toString()
+    };
 
+    // console.log('🌡️ Temp Update → WS:', tempMsg);
 
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify(tempMsg));
+      }
+    });
+
+    return;
   }
 
+  // Handle Humidity update
+  if (topic === "SF/HUMIDITY") {
+    const humMsg = {
+      type: 'status',
+      device: "humidity",
+      value: message.toString()
+    };
 
-  console.log('🔄 MQTT → WS:', wsMessage);
-  console.log('🔄 MQTT → WS:', tempMessage);
+    // console.log('💧 Humidity Update → WS:', humMsg);
 
-  // Send to all connected clients
-  wss.clients.forEach((client) => {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(JSON.stringify(wsMessage));
-      client.send(JSON.stringify(tempMessage));
-    }
-  });
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify(humMsg));
+      }
+    });
+
+    return;
+  }
+
+  // Handle Door Opener
+  if (topic === "device/pinpad/pinpad") {
+    const doorMsg = {
+      type: 'status',
+      device: "pinpad",
+      value: message.toString()
+    };
+
+    console.log('💧 Door Update → WS:', doorMsg);
+
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify(doorMsg));
+      }
+    });
+
+    return;
+  }
+
+  // Handle Door Bell
+  if (topic === "device/bell/bell") {
+    const bellMsg = {
+      type: 'status',
+      device: "bell",
+      value: message.toString()
+    };
+
+    console.log('💧 Bell Update → WS:', bellMsg);
+
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify(bellMsg));
+      }
+    });
+
+    return;
+  }
+  // Handle LCD
+  if (topic === "device/lcd/lcd") {
+    const lcdMsg = {
+      type: 'status',
+      device: "lcd",
+      value: message.toString()
+    };
+
+    console.log('💧 Bell Update → WS:', lcdMsg);
+
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify(lcdMsg));
+      }
+    });
+
+    return;
+  }
+
+  // Handle device status updates
+  if (parts.length === 3 && parts[0] === 'device') {
+    const [, deviceType, deviceId] = parts;
+    const statusMsg = {
+      type: 'status',
+      deviceType,
+      deviceId,
+      value: message.toString()
+    };
+
+    console.log('🔄 MQTT → WS:', statusMsg);
+
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify(statusMsg));
+      }
+    });
+  }
 });
 
-// HTTP test route
+// HTTP route to test server
 app.get('/', (req, res) => {
   res.send('🌐 WebSocket + MQTT server is working!');
+});
+
+// Endpoint to get supported device types
+app.get('/devices', (req, res) => {
+  res.json({ supportedTypes: DEVICE_TYPES });
 });
 
 // Start server

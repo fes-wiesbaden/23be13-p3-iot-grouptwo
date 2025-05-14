@@ -10,19 +10,22 @@
   </div>
 </template>
 
-
 <script>
 export default {
   name: 'SensorCard',
-  data() {
-    return {
-      sensors: [
-        { name: 'Living Room', value: 21, type: 'Temperature', unit: '°C' },
-        { name: 'Outside', value: 44, type: 'Humidity', unit: '%' },
+  props: {
+    liveTemperature: Number,
+    liveHumidity: Number
+  },
+  computed: {
+    sensors() {
+      return [
+        { name: 'Living Room', value: this.liveTemperature, type: 'Temperature', unit: '°C' },
+        { name: 'Outside', value: this.liveHumidity, type: 'Humidity', unit: '%' },
         { name: 'Water', value: 86, type: 'Consumption', unit: 'm<sup>3</sup>' },
         { name: 'Internet', value: 346, type: 'All Devices', unit: 'GB' }
-      ]
-    };
+      ];
+    }
   }
 };
 </script>
