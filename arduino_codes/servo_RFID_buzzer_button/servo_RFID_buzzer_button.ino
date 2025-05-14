@@ -34,7 +34,7 @@ const char* ssid = "FES-SuS";
 const char* password = "SuS-WLAN!Key24";
 
 // MQTT configuration
-const char* mqttHost = "10.93.138.100";
+const char* mqttHost = "10.93.137.48";
 const int mqttPort = 1883;
 const char* mqttUser = "admin";
 const char* mqttPassword = "admin";
