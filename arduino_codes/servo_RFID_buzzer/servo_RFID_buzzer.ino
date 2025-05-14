@@ -12,6 +12,10 @@ MFRC522 mfrc522(SS_PIN, RST_PIN);   // Create MFRC522 instance.
 
 MFRC522::MIFARE_Key key;
 
+// Button 
+const int tasterPin = D1; // Entspricht GPIO5
+int tasterStatus = 0; // Variable für den Tasterstatus
+
 // Buzzer
 Buzzer buzzer(D2);
 
@@ -38,10 +42,13 @@ const char* mqttPassword = "admin";
 // Topics
 const char* deviceId = "servo";
 const char* deviceId2 = "buzzer";
+const char* deviceId3 = "bell";
 const char* controlTopic = "device/servo/servo";
 const char* statusTopic = "device/status/servo";
 const char* controlTopic2 = "device/buzzer/buzzer";
 const char* statusTopic2 = "device/buzzer/buzzer";
+const char* controlTopic3 = "device/bell/bell";
+const char* statusTopic3 = "device/bell/bell";
 
 WiFiClient wifiClient;
 PubSubClient client(wifiClient);
@@ -76,6 +83,11 @@ void callback(char* topic, byte* payload, unsigned int length) {
       client.publish(statusTopic, "BuzzerOFF");
     }
   } 
+  if (String(topic) == controlTopic3) {
+    if (message == "DoorBell") {
+      client.publish(statusTopic, "bell");
+    }
+  } 
 }
 
 void reconnect() {
@@ -86,8 +98,10 @@ void reconnect() {
       Serial.println("connected!");
       client.subscribe(controlTopic);
       client.subscribe(controlTopic2);
+      client.subscribe(controlTopic3);
       client.publish(statusTopic, "ONLINE");
       client.publish(statusTopic2, "ONLINE");
+      client.publish(statusTopic3, "ONLINE");
     } else {
       Serial.print("Failed. State=");
       Serial.println(client.state());
@@ -97,8 +111,10 @@ void reconnect() {
 }
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
   delay(1000);
+  pinMode(tasterPin, INPUT);
+  
 
   while (!Serial);    // Do nothing if no serial port is opened (added for Arduinos based on ATMEGA32U4)
   SPI.begin();        // Init SPI bus
@@ -136,6 +152,12 @@ void setup() {
 }
 
 void loop() {
+  tasterStatus = digitalRead(tasterPin);
+  if (tasterStatus == HIGH) {
+    client.publish(controlTopic3, "DoorBell");
+    buzzerBell();
+    // Hier Aktionen ausführen, die bei Tastendruck passieren sollen
+  }
   if (ersteFunktionAusgeführt && !zweiteFunktionAusgeführt) {
     if (millis() - startZeit >= 10000) { // 10 Sekunden später
       client.publish(controlTopic, "OFF"); 
@@ -299,6 +321,14 @@ void loop() {
   mfrc522.PICC_HaltA();
   // Stop encryption on PCD
   mfrc522.PCD_StopCrypto1();
+
+  tasterStatus = digitalRead(tasterPin);
+  if (tasterStatus == HIGH) {
+    Serial.println("Taster gedrückt!");
+    // Hier Aktionen ausführen, die bei Tastendruck passieren sollen
+  } else {
+    Serial.println("Taster nicht gedrückt."); // Optional für Debugging
+  }
 }
 
 void moveServoOpen() {
@@ -335,4 +365,75 @@ void buzzerDenied() {
   buzzer.sound(0, 100);           
   buzzer.end(1000);
   delay(2000);
+}
+
+void buzzerBell() {
+  buzzer.begin(100);
+  buzzer.sound(NOTE_E7, 80);
+  buzzer.sound(NOTE_E7, 80);
+  buzzer.sound(0, 80);
+  buzzer.sound(NOTE_E7, 80);
+  buzzer.sound(0, 80);
+  buzzer.sound(NOTE_C7, 80);
+  buzzer.sound(NOTE_E7, 80);
+  buzzer.sound(0, 80);
+  buzzer.sound(NOTE_G7, 80);
+  buzzer.sound(0, 240);
+  buzzer.sound(NOTE_G6, 80);
+  buzzer.sound(0, 240);
+  buzzer.sound(NOTE_C7, 80);
+  buzzer.sound(0, 160);
+  buzzer.sound(NOTE_G6, 80);
+  buzzer.sound(0, 160);
+  buzzer.sound(NOTE_E6, 80);
+  buzzer.sound(0, 160);
+  buzzer.sound(NOTE_A6, 80);
+  buzzer.sound(0, 80);
+  buzzer.sound(NOTE_B6, 80);
+  buzzer.sound(0, 80);
+  buzzer.sound(NOTE_AS6, 80);
+  buzzer.sound(NOTE_A6, 80);
+  buzzer.sound(0, 80);
+  buzzer.sound(NOTE_G6, 100);
+  buzzer.sound(NOTE_E7, 100);
+  buzzer.sound(NOTE_G7, 100);
+  buzzer.sound(NOTE_A7, 80);
+  buzzer.sound(0, 80);
+  buzzer.sound(NOTE_F7, 80);
+  buzzer.sound(NOTE_G7, 80);
+  buzzer.sound(0, 80);
+  buzzer.sound(NOTE_E7, 80);
+  buzzer.sound(0, 80);
+  buzzer.sound(NOTE_C7, 80);
+  buzzer.sound(NOTE_D7, 80);
+  buzzer.sound(NOTE_B6, 80);
+  buzzer.sound(0, 160);
+  buzzer.sound(NOTE_C7, 80);
+  buzzer.sound(0, 160);
+  buzzer.sound(NOTE_G6, 80);
+  buzzer.sound(0, 160);
+  buzzer.sound(NOTE_E6, 80);
+  buzzer.sound(0, 160);
+  buzzer.sound(NOTE_A6, 80);
+  buzzer.sound(0, 80);
+  buzzer.sound(NOTE_B6, 80);
+  buzzer.sound(0, 80);
+  buzzer.sound(NOTE_AS6, 80);
+  buzzer.sound(NOTE_A6, 80);
+  buzzer.sound(0, 80);
+  buzzer.sound(NOTE_G6, 100);
+  buzzer.sound(NOTE_E7, 100);
+  buzzer.sound(NOTE_G7, 100);
+  buzzer.sound(NOTE_A7, 80);
+  buzzer.sound(0, 80);
+  buzzer.sound(NOTE_F7, 80);
+  buzzer.sound(NOTE_G7, 80);
+  buzzer.sound(0, 80);
+  buzzer.sound(NOTE_E7, 80);
+  buzzer.sound(0, 80);
+  buzzer.sound(NOTE_C7, 80);
+  buzzer.sound(NOTE_D7, 80);
+  buzzer.sound(NOTE_B6, 80);
+  buzzer.sound(0, 160);
+  buzzer.end(2000);
 }
