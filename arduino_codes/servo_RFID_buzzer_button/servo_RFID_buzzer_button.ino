@@ -43,12 +43,15 @@ const char* mqttPassword = "admin";
 const char* deviceId = "servo";
 const char* deviceId2 = "buzzer";
 const char* deviceId3 = "bell";
+const char* deviceId4 = "lcd";
 const char* controlTopic = "device/servo/servo";
 const char* statusTopic = "device/status/servo";
 const char* controlTopic2 = "device/buzzer/buzzer";
 const char* statusTopic2 = "device/buzzer/buzzer";
 const char* controlTopic3 = "device/bell/bell";
 const char* statusTopic3 = "device/bell/bell";
+const char* controlTopic4 = "device/lcd/lcd";
+const char* statusTopic4 = "device/lcd/lcd";
 
 WiFiClient wifiClient;
 PubSubClient client(wifiClient);
@@ -161,6 +164,7 @@ void loop() {
   if (ersteFunktionAusgeführt && !zweiteFunktionAusgeführt) {
     if (millis() - startZeit >= 10000) { // 10 Sekunden später
       client.publish(controlTopic, "OFF"); 
+      client.publish(controlTopic4, "accessPending");
       zweiteFunktionAusgeführt = true;
 
       ersteFunktionAusgeführt = false;
@@ -200,6 +204,7 @@ void loop() {
 
   if (!ersteFunktionAusgeführt) {
     client.publish(controlTopic2, "BuzzerON"); 
+    client.publish(controlTopic4, "accessAllowed");
     client.publish(controlTopic, "ON"); 
     startZeit = millis();  // Startzeit merken
     ersteFunktionAusgeführt = true;
@@ -207,6 +212,7 @@ void loop() {
   }
   } else {
     client.publish(controlTopic2, "BuzzerOFF"); 
+    client.publish(controlTopic4, "accessDenied");
     Serial.println("❌ Zugang verweigert");
     return; // Rest des Codes wird nicht ausgeführt
   }
