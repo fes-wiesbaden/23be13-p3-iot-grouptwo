@@ -32,6 +32,11 @@
             :isOn="device.status"
             @toggle="toggleDevice(device.id, $event)"
           />
+          
+          <div>
+    <CircularRangeSlider v-model="fanSpeed" />
+    <p>Fan Speed: {{ fanSpeed }}%</p>
+  </div>
         </div>
       </div>
       <div class="item music-bar">
@@ -57,8 +62,9 @@ import CameraCard from '@/components/CameraCard.vue';
 import SensorCard from '@/components/SensorCard.vue';
 import WeatherCard from '@/components/WeatherCard.vue';
 import EnergyCard from '@/components/EnergyCard.vue';
-import DeviceCard from '@/components/DeviceCard.vue';
+import DeviceCard  from '@/components/DeviceCard.vue';
 import MusicCard from '@/components/MusicCard.vue';
+import Slider from '@/components/CircularRangeSlider.vue';
 
 export default {
   name: 'Dashboard',
@@ -69,6 +75,7 @@ export default {
     EnergyCard,
     DeviceCard,
     MusicCard
+    ,Slider
   },
 
   data() {
@@ -84,8 +91,8 @@ export default {
       ],
       notifications: [],
       showPopup: false,
-      latestNotification: ''
-    };
+      latestNotification: '',
+temperature: 60    };
   },
 
   created() {
@@ -107,6 +114,11 @@ export default {
       if (msg.type === 'status' && msg.device === 'humidity') {
         this.humidity = parseFloat(msg.value);
         // this.addNotification(`💧 Humidity updated: ${this.humidity}%`);
+      }
+
+      if (msg.type == 'status' && msg.device == 'FlameSensore'){
+        this.addNotification(`*** Flame in Livingroom Detected!!! ***`);
+        console.log(`*** Flame in Livingroom Detected!!! ***`);
       }
 
       if (msg.type === 'status' && msg.device === 'pinpad') {
