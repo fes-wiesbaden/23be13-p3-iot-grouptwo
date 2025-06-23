@@ -9,6 +9,10 @@ const { mqttClient } = require('./mqtt/client');
 const setupMQTTHandlers = require('./mqtt/handlers');
 const setupWebSocket = require('./ws/server');
 const apiRoutes = require('./routes/api');
+const { insertEntryData } = require('./db/queryHistory');
+const { insertSensorData } = require('./db/queries');
+
+
 
 // Middleware
 app.use(cors());
@@ -21,6 +25,13 @@ setupWebSocket(wss);
 
 // MQTT setup
 setupMQTTHandlers(mqttClient, wss);
+
+
+
+
+// test
+insertSensorData("hvhgvhgvhg", "1123");
+insertEntryData("sdasdlfkjlaskjdff", "1123");
 
 // Start server
 const PORT = 3001;

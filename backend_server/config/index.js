@@ -6,7 +6,7 @@ module.exports = {
     clientId: 'nodejs-controller-' + Math.random().toString(16).substr(2, 8),
   },
   dbConfig: {
-    user: 'admin',
+    user: 'postgres',
     password: 'admin',
     host: '10.93.131.8',
     port: 5432,
