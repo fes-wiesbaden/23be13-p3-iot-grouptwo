@@ -121,8 +121,8 @@ temperature: 60    };
         console.log(`*** Flame in Livingroom Detected!!! ***`);
       }
 
-      if (msg.type === 'status' && msg.device === 'pinpad') {
-        this.addNotification(`💧 Door update: Open with PinPad`);
+      if (msg.type === 'status' && msg.device === 'NumPadLock') {
+        this.addNotification(`💧 Door status: ${msg.value}`);
       }
 
       if (msg.type === 'status' && msg.deviceId) {
