@@ -34,7 +34,7 @@ const char* ssid = "FES-SuS";
 const char* password = "SuS-WLAN!Key24";
 
 // MQTT configuration
-const char* mqttHost = "10.93.137.48";
+const char* mqttHost = "10.93.131.8";
 const int mqttPort = 1883;
 const char* mqttUser = "admin";
 const char* mqttPassword = "admin";
@@ -136,7 +136,8 @@ void setup() {
 
   Serial.println(F("BEWARE: Data will be written to the PICC, in sector #1"));
 
-  myservo.attach(D0);
+  myservo.attach(D3);
+  moveServoClose();
 
   Serial.println("Connecting to WiFi...");
   WiFi.begin(ssid, password);
