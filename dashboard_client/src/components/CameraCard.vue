@@ -33,11 +33,11 @@ export default {
         },
         door: {
           label: 'Main Door',
-          url: new URL('../assets/main_door.jpg', import.meta.url).href
+          url: 'http://10.93.134.239:81/stream'
         },
         yard: {
           label: 'Yard',
-          url: new URL('../assets/yard.jpg', import.meta.url).href
+          url: 'https://youtu.be/_54vIiOHofs'
         }
       }
     };

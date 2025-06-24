@@ -8,12 +8,12 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/',
     name: 'Home',
-    component: HomePage,
+    component: Dashboardv2,
   },
   {
     path: "/v2",
     name: "DashboardV2",
-    component: Dashboardv2,
+    component: HomePage,
   },
 ];
 
