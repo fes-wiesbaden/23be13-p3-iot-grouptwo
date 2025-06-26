@@ -1,13 +1,19 @@
 #include <SPI.h>
 #include <Ethernet.h>
 #include <PubSubClient.h>
+#include<SoftwareSerial.h>
+
+
+
+/* Create object named bt of the class SoftwareSerial */ 
+SoftwareSerial bt(2,3); /* (Rx,Tx) */ 
 
 // MAC address (must be unique per device)
 byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0x00, 0x02 };
 IPAddress fallbackIP(172, 16, 0, 101);
 
 // MQTT config
-const char* mqttHost = "10.93.138.100";
+const char* mqttHost = "10.93.131.8";
 const int mqttPort = 1883;
 const char* mqttUser = "admin";
 const char* mqttPassword = "admin";
@@ -28,6 +34,9 @@ Device btns[] = {
   { "add", 6 },
   { "sub", 7 }
 };
+
+const int motionSensor_led = 8;
+
 
 // Track previous states
 bool prev_add_btn_state = LOW;
@@ -106,6 +115,7 @@ void reconnect() {
 }
 
 void setup() {
+    bt.begin(9600); /* Define baud rate for software serial communication */
   Serial.begin(9600);
   pinMode(pirPin, INPUT);  // Set the PIR pin as an input
   for (int i = 0; i < ledCount; i++) {
@@ -116,6 +126,8 @@ void setup() {
   for (int i = 0; i < 2 ; i++){
     pinMode(btns[i].pin, OUTPUT);
   }
+
+  pinMode(motionSensor_led, OUTPUT);
 
   Serial.println("Starting Ethernet...");
   if (Ethernet.begin(mac) == 0) {
@@ -142,15 +154,19 @@ void loop() {
 
   client.loop();
 
+  // Bluetooth Connection input
+  if (bt.available()) /* If data is available on serial port */
+    {
+    	Serial.write(bt.read());      /* Print character received on to the serial monitor */
+    }
+
   state = digitalRead(pirPin);         // Read the state of the PIR sensor
   if (state == HIGH) {                 // If the PIR sensor detects movement (state = HIGH)
     Serial.println("Somebody here!");  // Print "Somebody here!" to the serial monitor
-    digitalWrite(4, HIGH);
-    digitalWrite(5, LOW);
+    digitalWrite(motionSensor_led, HIGH);
   } else {
     // Serial.println("Monitoring...");
-    digitalWrite(5, HIGH);
-    digitalWrite(4, LOW);
+    digitalWrite(motionSensor_led, LOW);
 
     delay(100);
   }

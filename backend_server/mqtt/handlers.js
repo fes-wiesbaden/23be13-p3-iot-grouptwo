@@ -1,5 +1,5 @@
 const { insertSensorData } = require('../db/queries');
-const { insertEntryData } = require('../db/queryHistory');
+const { insertEntryData, insertBuzzerData, insertAccessAttemptsData, insertDoorEventsData, insertTemperatureData } = require('../db/queryHistory');  
 const { broadcastToClients } = require('../utils/broadcast');
 
 module.exports = function setupMQTTHandlers(mqttClient, wss) {
@@ -21,35 +21,37 @@ module.exports = function setupMQTTHandlers(mqttClient, wss) {
   mqttClient.subscribe('smartlock/status', () => console.log('📡 Subscribed to smartlock/status'));
   mqttClient.subscribe('device/fingerprint/fingerprint', () => console.log('📡 Subscribed to device/fingerprint/fingerprint'));
   mqttClient.subscribe('device/servo/servo', () => console.log('📡 Subscribed to device/servo/servo'));
+  mqttClient.subscribe('Grage/Tor', () => console.log('📡 Subscribed to Grage/Tor'));
 
 
 
   mqttClient.on('message', async (topic, message) => {
     const value = message.toString();
-    console.log( "value" + value);
-    console.log("t"+ topic.toString());
-
-    switch (topic) {
+    if (value != "ONLINE") {
+      switch (topic) {
       case 'SF/TEMP':
-        await insertSensorData('living_room', value);
+        await insertTemperatureData('living_room', value);
         broadcastToClients(wss, { type: 'status', device: 'temp', value });
         break;
 
       case 'device/pinpad/pinpad':
-        await insertEntryData('pinpad', value);
+        await insertAccessAttemptsData('pinpad', value);
         broadcastToClients(wss, { type: 'status', device: 'pinpad', value });
         break;
 
       case 'device/buzzer/buzzer':
-        await insertEntryData('buzzer', value);
-        
-        broadcastToClients(wss, { type: 'status', device: 'buzzer', value });
+        if(value == 'BuzzerON'){
+          await insertAccessAttemptsData('buzzer', 'accessAllowed');
+          broadcastToClients(wss, { type: 'status', device: 'buzzer', value });
+        }
+        else if(value == 'BuzzerOFF'){
+          await insertAccessAttemptsData('buzzer','accessDenied');
+          broadcastToClients(wss, { type: 'status', device: 'buzzer', value });
+        }
         break;
 
       case 'device/bell/bell':
-        //print(value);
-        await insertEntryData('bell', value);
-        print(value);
+        await insertBuzzerData('ring');
         broadcastToClients(wss, { type: 'status', device: 'bell', value });
         break;
 
@@ -59,14 +61,19 @@ module.exports = function setupMQTTHandlers(mqttClient, wss) {
         break;
 
       case 'device/fingerprint/fingerprint':
-        //await insertEntryData('fingerprint', value);
-        //print(value);
+        await insertAccessAttemptsData('fingerprint', 'fingerprint_used');
         broadcastToClients(wss, { type: 'status', device: 'fingerprint', value });
         break;
 
       case 'device/servo/servo':
-        await insertEntryData('servo', value);
-        broadcastToClients(wss, { type: 'status', device: 'servo', value });
+        if(value == 'ON'){
+          await insertDoorEventsData('door_open');
+          broadcastToClients(wss, { type: 'status', device: 'servo', value });
+        }
+        else if(value == 'OFF'){
+          await insertDoorEventsData('door_closed');
+          broadcastToClients(wss, { type: 'status', device: 'servo', value });
+        }
         break;
 
       case 'SF/HUMIDITY':
@@ -74,6 +81,7 @@ module.exports = function setupMQTTHandlers(mqttClient, wss) {
         break;
       
       case 'SF/FlameSensore':
+
         broadcastToClients(wss, { type: 'status', device: 'FlameSensore', value });
         console.log("***Flame Detected!!!***")
         break;
@@ -81,8 +89,17 @@ module.exports = function setupMQTTHandlers(mqttClient, wss) {
       case 'smartlock/status':
       broadcastToClients(wss, {type: 'status', device:'NumPadLock', value}); 
       console.log(value);
+      break;
 
-
+      case 'Grage/Tor':
+        if(value== "ON"){
+          await insertDoorEventsData('garage_open');
+        broadcastToClients(wss, {type: 'status', device:'Grage/Tor', value});
+        }else{
+          await insertDoorEventsData('garade_closed');
+          broadcastToClients(wss, {type: 'status', device:'Grage/Tor', value}); 
+        }
+        break;
 
       default:
         const parts = topic.split('/');
@@ -90,6 +107,7 @@ module.exports = function setupMQTTHandlers(mqttClient, wss) {
           const [, deviceType, deviceId] = parts;
           broadcastToClients(wss, { type: 'status', deviceType, deviceId, value });
         }
+    }
     }
   });
 };

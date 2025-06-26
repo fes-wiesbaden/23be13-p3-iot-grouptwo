@@ -3,6 +3,8 @@
 #include <DHT.h>
 #include <LiquidCrystal_I2C.h>
 
+
+
 // LCD setup
 LiquidCrystal_I2C lcd(0x27, 16, 2);  // Adjust address if needed (commonly 0x27 or 0x3F)
 
@@ -11,7 +13,7 @@ const char* ssid = "FES-SuS";
 const char* password = "SuS-WLAN!Key24";
 
 // MQTT credentials
-const char* mqtt_server = "10.93.138.100";
+const char* mqtt_server = "10.93.131.8";
 const int mqttPort = 1883;
 const char* mqttUser = "admin";
 const char* mqttPassword = "admin";
@@ -28,6 +30,13 @@ PubSubClient client(espClient);
 // Variables displayed on LCD (manually controlled)
 int temp_var = 25;
 int Hum_var = 10;
+
+// Define the pin used for the flame sensor
+const int FlameSensorPin = 25;
+
+// Define the pin numbers for the Gas Sensor
+const int GasSensorPin = 34;
+int sensorValue;
 
 // WiFi connection
 void setup_wifi() {
@@ -96,16 +105,31 @@ void reconnect() {
   }
 }
 
+
+
+#if !defined(CONFIG_BT_ENABLED)  || !defined(CONFIG_BLUEDROID_ENABLED)
+#error Bluetooth is not enabled! Please  run `make menuconfig` to and enable it
+#endif
+
+#if !defined(CONFIG_BT_SPP_ENABLED)
+#error  Serial Bluetooth not available or not enabled. It is only available for the ESP32  chip.
+#endif
+
+  
+
 void setup() {
   lcd.init();
   lcd.clear();         
   lcd.backlight();
-
+  pinMode(FlameSensorPin, INPUT);  // Set the flame sensor pin as input
   Serial.begin(115200);
   dht.begin();
   setup_wifi();
   client.setServer(mqtt_server, mqttPort);
   client.setCallback(callback);
+
+  // SerialBT.begin("ESP32_BT"); // Name of your Bluetooth device
+  Serial.println("Bluetooth device is ready to pair");
 }
 
 void loop() {
@@ -146,10 +170,48 @@ void loop() {
   char tempString[8];
   dtostrf(temp, 1, 2, tempString);
   client.publish("SF/TEMP", tempString);
+   Serial.print("Temp: ");
+  Serial.println(temp);
 
   char humString[8];
   dtostrf(hum, 1, 2, humString);
   client.publish("SF/HUMIDITY", humString);
+Serial.print("Humi: ");
+  Serial.println(hum);
 
+  // Check if the sensor is detecting a fire
+  if (digitalRead(FlameSensorPin) == 0) {
+    Serial.println("** Fire detected!!! **");
+    client.publish("SF/FlameSensore", "Fire Detected");
+  } 
+
+  
+  // Read the analog value of the gas sensor
+  sensorValue = analogRead(GasSensorPin);
+
+  // Print the sensor value to the serial monitor
+  Serial.print("Analog output: ");
+  Serial.println(sensorValue);
+
+  // If the sensor value exceeds the threshold, trigger the alarm and make the RGB LED red
+  if (sensorValue > 3000) {
+    Serial.println("*** Gas detected!!! ***");
+    delay(500);
+  } 
+
+
+// Bluetooth Module
+
+  // if (SerialBT.available()) {
+  //   char incoming = SerialBT.read();
+  //   Serial.write(incoming); // Echo back to serial
+  // }
+     
+  
+
+
+
+  
+  
   delay(500);  // Limit publishing rate
 }

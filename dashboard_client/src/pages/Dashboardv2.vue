@@ -87,7 +87,8 @@ export default {
         { id: 'led1', name: 'Living Room Lamp', type: 'lamp', status: false },
         { id: 'led2', name: 'Bedroom Lamp', type: 'lamp', status: false },
         { id: 'lcd1', name: 'LCD Display', type: 'lcd', status: false },
-        { id: 'servo', name: 'Curtain Servo', type: 'servo', status: false }
+        { id: 'servo', name: 'Curtain Servo', type: 'servo', status: false },
+        { id: 'Grage/Tor', name: 'Garage Door', type: 'servo', status: false}
       ],
       notifications: [],
       showPopup: false,
@@ -130,6 +131,14 @@ temperature: 60    };
         if (device) {
           device.status = msg.value === 'ON' || msg.status === true;
           this.addNotification(`🔌 ${device.name} is now ${device.status ? 'ON' : 'OFF'}`);
+        }
+      }
+
+      if (msg.type == 'status' && msg.deviceId){
+        const device = this.devices.find(d = d.id === msg.deviceId );
+        if (device){
+          device.status = msg.value == 'ON' || msg.status === true;
+          this.addNotification(`🚪 ${device.name} is now ${device.status}`);
         }
       }
     };
