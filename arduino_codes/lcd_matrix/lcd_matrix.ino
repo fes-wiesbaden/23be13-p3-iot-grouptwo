@@ -20,25 +20,25 @@
 MD_MAX72XX M = MD_MAX72XX(HARDWARE_TYPE, CS_PIN, MAX_DEVICES);
 
 byte openLock[8] = {
-  B00111000,
-  B01000100,
-  B10000000,
-  B10000000,
-  B11111110,
-  B10000010,
-  B10000010,
-  B11111110
+  B00111111,
+  B01001001,
+  B10001001,
+  B10001001,
+  B10001001,
+  B10001001,
+  B00001001,
+  B00001111
 };
 
 byte closeLock[8] = {
-  B00111000,
-  B01000100,
-  B10000010,
-  B10000010,
-  B11111110,
-  B10000010,
-  B10000010,
-  B11111110
+  B00111111,
+  B01001001,
+  B10001001,
+  B10001001,
+  B10001001,
+  B10001001,
+  B01001001,
+  B00111111
 };
  
 //LCD Screen
@@ -52,7 +52,7 @@ const char* ssid = "FES-SuS";
 const char* password = "SuS-WLAN!Key24";
 
 // MQTT configuration
-const char* mqttHost = "10.93.137.48";
+const char* mqttHost = "10.93.131.8";
 const int mqttPort = 1883;
 const char* mqttUser = "admin";
 const char* mqttPassword = "admin";
@@ -124,6 +124,7 @@ void setup()
   lcd.print("Smart Lock");
   lcd.setCursor(0,1);
   lcd.print("System");
+  drawCloseClock();
 
   Serial.println("Connecting to WiFi...");
   WiFi.begin(ssid, password);

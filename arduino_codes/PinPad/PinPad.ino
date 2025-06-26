@@ -14,6 +14,12 @@ const char *mqtt_client_id = "D1Mini_SmartLock_Client";          // Unique ID fo
 const char *mqtt_topic_publish_key = "smartlock/keypad/presses"; // Topic for raw key presses
 const char *mqtt_topic_publish_status = "smartlock/status";      // Topic for lock status (e.g., "LOCKED", "UNLOCKED")
 const char *mqtt_topic_publish_attempt = "smartlock/attempts";   // Topic for code attempts (e.g., "CORRECT", "WRONG", "RESET")
+const char* controlTopic = "device/servo/servo";
+const char* statusTopic = "device/status/servo";
+const char* controlTopic2 = "device/buzzer/buzzer";
+const char* statusTopic2 = "device/buzzer/buzzer";
+const char* controlTopic3 = "device/lcd/lcd";
+const char* statusTopic3 = "device/lcd/lcd";
 
 // --- MQTT and WiFi clients ---
 WiFiClient espClient;
@@ -188,6 +194,12 @@ void loop()
             isLocked = false;
             client.publish(mqtt_topic_publish_status, "UNLOCKED");
             client.publish(mqtt_topic_publish_attempt, "CORRECT");
+            client.publish(controlTopic2, "BuzzerON"); 
+            client.publish(controlTopic3, "accessAllowed");
+            client.publish(controlTopic, "ON"); 
+            delay(10000);
+            client.publish(controlTopic, "OFF");
+            client.publish(statusTopic3, "accessPending");
             // Add your physical lock/unlock mechanism here (e.g., relay for a solenoid)
             // Example: digitalWrite(RELAY_PIN, HIGH); // Assuming HIGH unlocks
           }
@@ -197,6 +209,10 @@ void loop()
             isLocked = true; // Ensure it's locked on wrong attempt
             client.publish(mqtt_topic_publish_status, "LOCKED");
             client.publish(mqtt_topic_publish_attempt, "WRONG");
+            client.publish(controlTopic2, "BuzzerOFF"); 
+            client.publish(controlTopic3, "accessDenied");
+            delay(10000);
+            client.publish(statusTopic3, "accessPending");
             // Optionally, implement a lockout delay after multiple wrong attempts
           }
           enteredCode = ""; // Clear the entered code after attempt
